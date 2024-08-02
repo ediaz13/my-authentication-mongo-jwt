@@ -1,4 +1,4 @@
-package com.mogul.authentication.mongo_authentication;
+package com.mogul.authentication.mongoauthentication;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

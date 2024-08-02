@@ -1,4 +1,4 @@
-package com.mogul.authentication.mongo_authentication;
+package com.mogul.authentication.mongoauthentication;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
