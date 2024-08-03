@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.security.*;
+import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.EncodedKeySpec;
 import java.security.spec.InvalidKeySpecException;
@@ -115,15 +116,15 @@ public class KeyUtils {
         return (RSAPublicKey) getAccessTokenKeyPair().getPublic();
     }
 
-    public RSAPublicKey getAccessTokenPrivateKey() {
-        return (RSAPublicKey) getAccessTokenKeyPair().getPrivate();
+    public RSAPrivateKey getAccessTokenPrivateKey() {
+        return (RSAPrivateKey) getAccessTokenKeyPair().getPrivate();
     }
 
     public RSAPublicKey getRefreshTokenPublicKey() {
         return (RSAPublicKey) get_refreshTokenKeyPair().getPublic();
     }
 
-    public RSAPublicKey getRefreshTokenPrivateKey() {
-        return (RSAPublicKey) get_refreshTokenKeyPair().getPrivate();
+    public RSAPrivateKey getRefreshTokenPrivateKey() {
+        return (RSAPrivateKey) get_refreshTokenKeyPair().getPrivate();
     }
 }
