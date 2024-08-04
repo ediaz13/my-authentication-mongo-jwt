@@ -13,9 +13,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
+import org.springframework.security.config.annotation.authentication.configurers.userdetails.DaoAuthenticationConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -23,6 +26,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
+import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -34,6 +38,12 @@ public class WebSecurity {
 
     @Autowired
     KeyUtils keyUtils;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
+    @Autowired
+    UserDetailsManager userDetailsManager;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -74,13 +84,13 @@ public class WebSecurity {
     }
 
     @Bean
-    @Qualifier("refreshTokenDecoder")
+    @Qualifier("jwtRefreshTokenDecoder")
     JwtDecoder jwtRefreshTokenDecoder() {
         return NimbusJwtDecoder.withPublicKey(keyUtils.getRefreshTokenPublicKey()).build();
     }
 
     @Bean
-    @Qualifier("refreshTokenEncoder")
+    @Qualifier("jwtRefreshTokenEncoder")
     JwtEncoder jwtRefreshTokenEncoder() {
         JWK jwk = new RSAKey
                 .Builder(keyUtils.getRefreshTokenPublicKey())
@@ -96,5 +106,14 @@ public class WebSecurity {
         JwtAuthenticationProvider provider = new JwtAuthenticationProvider(jwtRefreshTokenDecoder());
         provider.setJwtAuthenticationConverter(jwtToUserConverter);
         return provider;
-    } 
+    }
+
+    @Bean
+    DaoAuthenticationProvider daoAuthenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setPasswordEncoder(passwordEncoder);
+        provider.setUserDetailsService(userDetailsManager);
+
+        return provider;
+    }
 }
