@@ -1,5 +1,6 @@
 package com.mogul.authentication.mongoauthentication.security;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -20,36 +21,35 @@ import java.util.Arrays;
 import java.util.Objects;
 
 @Component
+@Slf4j
 public class KeyUtils {
-
     @Autowired
     Environment environment;
 
-    @Value("access-token.private")
+    @Value("${access-token.private}")
     private String accessTokenPrivateKeyPath;
 
-    @Value("access-token.public")
+    @Value("${access-token.public}")
     private String accessTokenPublicKeyPath;
 
-    @Value("refresh-token.private")
+    @Value("${refresh-token.private}")
     private String refreshTokenPrivateKeyPath;
 
-    @Value("refresh-token.public")
+    @Value("${refresh-token.public}")
     private String refreshTokenPublicKeyPath;
 
     private KeyPair _accessTokenKeyPair;
     private KeyPair _refreshTokenKeyPair;
 
-    public KeyPair getAccessTokenKeyPair() {
+    private KeyPair getAccessTokenKeyPair() {
         if (Objects.isNull(_accessTokenKeyPair)) {
-            _accessTokenKeyPair = getKeyPair(accessTokenPublicKeyPath, refreshTokenPrivateKeyPath);
+            _accessTokenKeyPair = getKeyPair(accessTokenPublicKeyPath, accessTokenPrivateKeyPath);
         }
-
         return _accessTokenKeyPair;
     }
 
-    private KeyPair get_refreshTokenKeyPair() {
-        if(Objects.isNull(_refreshTokenKeyPair)) {
+    private KeyPair getRefreshTokenKeyPair() {
+        if (Objects.isNull(_refreshTokenKeyPair)) {
             _refreshTokenKeyPair = getKeyPair(refreshTokenPublicKeyPath, refreshTokenPrivateKeyPath);
         }
         return _refreshTokenKeyPair;
@@ -62,6 +62,7 @@ public class KeyUtils {
         File privateKeyFile = new File(privateKeyPath);
 
         if (publicKeyFile.exists() && privateKeyFile.exists()) {
+            log.info("loading keys from file: {}, {}", publicKeyPath, privateKeyPath);
             try {
                 KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 
@@ -70,29 +71,26 @@ public class KeyUtils {
                 PublicKey publicKey = keyFactory.generatePublic(publicKeySpec);
 
                 byte[] privateKeyBytes = Files.readAllBytes(privateKeyFile.toPath());
-                EncodedKeySpec privateKeySpec = new X509EncodedKeySpec(privateKeyBytes);
+                PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
                 PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
 
                 keyPair = new KeyPair(publicKey, privateKey);
                 return keyPair;
             } catch (NoSuchAlgorithmException | IOException | InvalidKeySpecException e) {
-                throw new RuntimeException("Failed to read key pair", e);
+                throw new RuntimeException(e);
             }
-
         } else {
-            // Generate the key pair
-            if (Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> env.equals("prod"))) {
-                throw new RuntimeException("Key pair not found");
+            if (Arrays.stream(environment.getActiveProfiles()).anyMatch(s -> s.equals("prod"))) {
+                throw new RuntimeException("public and private keys don't exist");
             }
         }
 
         File directory = new File("access-refresh-token-keys");
-
         if (!directory.exists()) {
             directory.mkdirs();
         }
-
         try {
+            log.info("Generating new public and private keys: {}, {}", publicKeyPath, privateKeyPath);
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
             keyPairGenerator.initialize(2048);
             keyPair = keyPairGenerator.generateKeyPair();
@@ -105,26 +103,24 @@ public class KeyUtils {
                 PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyPair.getPrivate().getEncoded());
                 fos.write(keySpec.getEncoded());
             }
-
-            return keyPair;
         } catch (NoSuchAlgorithmException | IOException e) {
-            throw new RuntimeException("Failed to generate key pair", e);
+            throw new RuntimeException(e);
         }
+
+        return keyPair;
     }
+
 
     public RSAPublicKey getAccessTokenPublicKey() {
         return (RSAPublicKey) getAccessTokenKeyPair().getPublic();
-    }
-
+    };
     public RSAPrivateKey getAccessTokenPrivateKey() {
         return (RSAPrivateKey) getAccessTokenKeyPair().getPrivate();
-    }
-
+    };
     public RSAPublicKey getRefreshTokenPublicKey() {
-        return (RSAPublicKey) get_refreshTokenKeyPair().getPublic();
-    }
-
+        return (RSAPublicKey) getRefreshTokenKeyPair().getPublic();
+    };
     public RSAPrivateKey getRefreshTokenPrivateKey() {
-        return (RSAPrivateKey) get_refreshTokenKeyPair().getPrivate();
-    }
+        return (RSAPrivateKey) getRefreshTokenKeyPair().getPrivate();
+    };
 }

@@ -2,8 +2,8 @@ package com.mogul.authentication.mongoauthentication.web;
 
 import com.mogul.authentication.mongoauthentication.document.User;
 import com.mogul.authentication.mongoauthentication.dto.SignupDTO;
+import com.mogul.authentication.mongoauthentication.security.TokenGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.pulsar.PulsarProperties;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,6 +22,9 @@ public class AuthController {
     @Autowired
     UserDetailsManager userDetailsManager;
 
+    @Autowired
+    TokenGenerator tokenGenerator;
+
     @PostMapping("/register")
     public ResponseEntity register(@RequestBody SignupDTO signupDTO) {
         User user = new User(signupDTO.getUsername(), signupDTO.getPassword());
@@ -29,6 +32,6 @@ public class AuthController {
 
         Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(user, signupDTO.getPassword(), Collections.EMPTY_LIST);
 
-        return ResponseEntity.ok(authentication);
+        return ResponseEntity.ok(tokenGenerator.createToken(authentication));
     }
 }

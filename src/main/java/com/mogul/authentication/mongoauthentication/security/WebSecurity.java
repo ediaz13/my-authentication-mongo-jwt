@@ -25,7 +25,6 @@ import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthen
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
 
-
 @Configuration
 @EnableGlobalAuthentication
 @Slf4j
@@ -40,7 +39,7 @@ public class WebSecurity {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers(HttpMethod.GET, "/api/auth/*").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/*").permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf((csrf) -> csrf.disable())
