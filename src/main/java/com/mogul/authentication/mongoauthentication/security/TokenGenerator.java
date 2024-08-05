@@ -51,7 +51,7 @@ public class TokenGenerator {
                 .subject(user.getId())
                 .build();
 
-        return accessTokenEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
+        return refreshTokenEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
     }
 
     public TokenDTO createToken(Authentication authentication) {

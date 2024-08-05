@@ -11,3 +11,7 @@ spring:
     mongodb:
       uri: mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOST}:${MONGODB_PORT}/?authSource=${MONGODB_DB}&replicaSet=${MONGODB_RS}
       database: ${MONGODB_DB}
+
+logging:
+  level:
+    org.springframework.security: DEBUG
