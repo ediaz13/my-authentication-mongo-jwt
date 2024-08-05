@@ -31,3 +31,20 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Eclipse ###
+*.key
+*.launch
+*.wtserver
+*.wtp*
+*.recommenders
+*.syncinfo
+*.target
+*.target/
+*.interim
+*.bson
+*.wt
+*.lock
+.settings/
+
+**/mongodb_data/mongodb/data/db/**
